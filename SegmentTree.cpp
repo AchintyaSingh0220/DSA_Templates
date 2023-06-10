@@ -131,85 +131,66 @@ const ll inf = 1e9;
 const ll linf = 1e18;
 const int MOD = 1e9 + 7;
 
-class SegTree
+vector<long long> tree;
+long long merge(long long &a, long long &b)
 {
-    vector<ll> seg;
-
-public:
-    SegTree(ll n)
-    {
-        seg.resize(4 * n);
+    return a + b;
+}
+void build(vector<int> &arr, int &n)
+{
+    while(__builtin_popcount(n) != 1) n++;
+    tree.resize(2 * n);
+    for(int i = 0; i<arr.size(); i++){
+        tree[n + i] = arr[i];
+    }
+    for(int i = n-1; i>=1; i--){
+        tree[i] = merge(tree[2 * i], tree[2 * i + 1]);
+    }
+}
+//default values: node->1, tl->0, tr->n-1
+void update(int node, int tl, int tr, int idx, int val)
+{
+    if(tl > idx || tr < idx) return;
+    if(tl == tr){
+        tree[node] = val;
+        return;
     }
 
-    ll merge(ll a, ll b)
-    {
-        return min(a, b);
-    }
+    int mid = (tl + tr) / 2;
+    update(2 * node, tl, mid, idx, val);
+    update(2 * node + 1, mid + 1, tr, idx, val);
+    tree[node] = merge(tree[2 * node], tree[2 * node + 1]);
+}
+long long qry(int node, int tl, int tr, int l, int r)
+{
+    if(l > tr || tl > r) return 0; //here 0 is identity element
+    if(l <= tl && tr <= r) return tree[node];
 
-    void build(ll idx, ll low, ll high, vector<ll> arr)
-    {
-        if (low == high)
-        {
-            seg[idx] = arr[low];
-            return;
-        }
-
-        ll mid = (high - low) / 2 + low;
-        build(idx * 2 + 1, low, mid, arr);
-        build(idx * 2 + 2, mid + 1, high, arr);
-
-        seg[idx] = merge(seg[idx * 2 + 1], seg[idx * 2 + 2]);
-    }
-
-    ll query(ll idx, ll low, ll high, ll l, ll r)
-    {
-        if (low >= l && high <= r)
-        {
-            return seg[idx];
-        }
-        else if (high < l || low > r)
-        {
-            return INT_MAX;
-        }
-
-        ll mid = (high - low) / 2 + low;
-
-        ll left = query(2 * idx + 1, low, mid, l, r);
-        ll right = query(2 * idx + 2, mid + 1, high, l, r);
-
-        return merge(left, right);
-    }
-
-    void update(ll idx, ll low, ll high, ll i, ll val)
-    {
-        if (low == high)
-        {
-            seg[idx] = val;
-            return;
-        }
-        ll mid = (high - low) / 2 + low;
-
-        if (i <= mid)
-            update(2 * idx + 1, low, mid, i, val);
-        else
-            update(2 * idx + 2, mid + 1, high, i, val);
-
-        seg[idx] = merge(seg[2 * idx + 1], seg[2 * idx + 2]);
-    }
-};
+    int mid = (tl + tr) / 2;
+    long long left = qry(2 * node, tl, mid, l, r);
+    long long right = qry(2 * node + 1, mid + 1, tr, l, r);
+    return merge(left, right);
+}
 
 void solution()
 {
-    in(n);
-    read(arr, n);
+    int n, q;cin>>n>>q;
+    vector<int> arr(n);
+    for(int i = 0; i<n; i++) cin>>arr[i];
+    build(arr, n);
 
-    SegTree s1(n);
-    s1.build(0, 0, n - 1, arr);
-    cout << s1.query(0, 0, n - 1, 2, 3) << endl;
-    s1.update(0, 0, n - 1, 2, 10);
-    cout << s1.query(0, 0, n - 1, 2, 3);
-
-    // cout << "Test" << endl;
+    while(q--)
+    {
+        int op;cin>>op;
+        if(op == 1)
+        {
+            int idx, val;cin>>idx>>val, idx--;
+            update(1, 0, n-1, idx, val);
+        } else {
+            int l, r;cin>>l>>r, l--, r--;
+            cout<<qry(1, 0, n-1, l, r)<<endl;
+        }
+    }
 }
 
 int main()
