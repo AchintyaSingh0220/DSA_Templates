@@ -14,6 +14,7 @@ using namespace std;
 #define umii unordered_map<ll, ll>
 #define ff first
 #define ss second
+#define ar array
 
 #define mem(a, val) memset(a, val, sizeof(a))
 #define each(x, a) for (auto &x : a)

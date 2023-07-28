@@ -159,6 +159,28 @@ unsigned long long inv(unsigned long long a)
     return power(a, MOD - 2);
 }
 
+long long fact[N], invfact[N];
+void init()
+{
+    int p = MOD;
+    fact[0] = 1;
+    int i;
+    for(i = 1; i<N; i++){
+        fact[i] = i*fact[i-1]%p;
+    }
+    i--;
+    invfact[i] = inv(fact[i]);
+    for(i--; i>=0; i--){
+        invfact[i] = invfact[i+1]*(i+1)%MOD;
+    }
+}
+
+unsigned long long fast_comb(unsigned long long n, int r)
+{
+    if (n < r || n < 0 || r < 0) return 0;
+    return mult(fact[n], mult(invfact[n-r], invfact[r]));
+}
+
 struct d{
     long long sum, lz=0;
 };
