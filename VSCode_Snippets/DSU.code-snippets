@@ -1,0 +1,39 @@
+{
+	"": {
+		"prefix": "DSU",
+		"body": [
+		  "int parent[N];",
+		  "int sz[N];",
+		  "",
+		  "void make(int u)",
+		  "{",
+		  "    parent[u] = u;",
+		  "    sz[u] = 1;",
+		  "}",
+		  "",
+		  "int find(int u)",
+		  "{",
+		  "    if (parent[u] == u)",
+		  "        return u;",
+		  "    return parent[u] = find(parent[u]);",
+		  "}",
+		  "",
+		  "void Union(int a, int b)",
+		  "{",
+		  "    a = find(a);",
+		  "    b = find(b);",
+		  "",
+		  "    if (a != b)",
+		  "    {",
+		  "        if (sz[a] < sz[b])",
+		  "        {",
+		  "            swap(a, b);",
+		  "        }",
+		  "        parent[b] = a;",
+		  "        sz[a] += sz[b];",
+		  "    }",
+		  "}"
+		],
+		"description": ""
+	  }
+}

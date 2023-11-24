@@ -1,0 +1,26 @@
+{
+	"": {
+		"prefix": "sieve",
+		"body": [
+		  "int isPrime[N];",
+		  "vector<ll> pr;",
+		  "void sieve()",
+		  "{",
+		  "    isPrime[1] = 0;",
+		  "    for (ll i = 2; i < N; i++)",
+		  "    {",
+		  "        if (isPrime[i] == 0)",
+		  "        {",
+		  "            pr.push_back(i);",
+		  "            for (ll j = i * i; j < N; j += i)",
+		  "            {",
+		  "                isPrime[j] = 1;",
+		  "            }",
+		  "        }",
+		  "        isPrime[i] ^= 1;",
+		  "    }",
+		  "}"
+		],
+		"description": ""
+	  }
+}
