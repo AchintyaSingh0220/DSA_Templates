@@ -131,64 +131,75 @@ const ll inf = 1e9;
 const ll linf = 1e18;
 const int MOD = 1e9 + 7;
 
-vector<long long> tree;
-long long merge(long long &a, long long &b)
+template <typename T> class SegTree
 {
-    return a + b;
-}
-void build(vector<int> &arr, int &n)
-{
-    while(__builtin_popcount(n) != 1) n++;
-    tree.resize(2 * n);
-    for(int i = 0; i<arr.size(); i++){
-        tree[n + i] = arr[i];
+    public:
+    vector<T> tree;
+    T merge(T &a, T &b)
+    {
+        return a + b;
     }
-    for(int i = n-1; i>=1; i--){
-        tree[i] = merge(tree[2 * i], tree[2 * i + 1]);
+    void build(vector<T> &arr, int &n)
+    {
+        while(__builtin_popcount(n) != 1) n++;
+        tree.resize(2 * n);
+        for(int i = 0; i<arr.size(); i++){
+            tree[n + i] = arr[i];
+        }
+        for(int i = n-1; i>=1; i--){
+            tree[i] = merge(tree[2 * i], tree[2 * i + 1]);
+        }
     }
-}
-//default values: node->1, tl->0, tr->n-1
-void update(int node, int tl, int tr, int idx, int val)
-{
-    if(tl > idx || tr < idx) return;
-    if(tl == tr){
-        tree[node] = val;
-        return;
+    void update(int n, int idx, T val)
+    {
+        tree[n + idx] = val;
+        for(int i = (n + idx)/2; i>=1; i /= 2) {
+            tree[i] = merge(tree[2*i], tree[2*i+1]);
+        }
     }
+    void update(int node, int tl, int tr, int l, int r, T v)
+    {
+        if(tr < l || r < tl) return;
+        if(l <= tl && tr <= r) {
+            tree[node] = v;
+            return;
+        }
 
-    int mid = (tl + tr) / 2;
-    update(2 * node, tl, mid, idx, val);
-    update(2 * node + 1, mid + 1, tr, idx, val);
-    tree[node] = merge(tree[2 * node], tree[2 * node + 1]);
-}
-long long qry(int node, int tl, int tr, int l, int r)
-{
-    if(l > tr || tl > r) return 0; //here 0 is identity element
-    if(l <= tl && tr <= r) return tree[node];
+        int mid = (tl + tr) / 2;
+        update(2 * node, tl, mid, l, r, v);
+        update(2 * node + 1, mid + 1, tr, l, r, v);
+        tree[node] = merge(tree[2*node], tree[2*node+1]);
+    }
+    T qry(int node, int tl, int tr, int l, int r)
+    {
+        if(tr < l || r < tl) return 0; //here 0 is identity element
+        if(l <= tl && tr <= r) return tree[node];
 
-    int mid = (tl + tr) / 2;
-    long long left = qry(2 * node, tl, mid, l, r);
-    long long right = qry(2 * node + 1, mid + 1, tr, l, r);
-    return merge(left, right);
-}
+        int mid = (tl + tr) / 2;
+        T left = qry(2 * node, tl, mid, l, r);
+        T right = qry(2 * node + 1, mid + 1, tr, l, r);
+        return merge(left, right);
+    }
+};
 
 void solution()
 {
     int n, q;cin>>n>>q;
-    vector<int> arr(n);
+    vector<long long> arr(n);
     for(int i = 0; i<n; i++) cin>>arr[i];
-    build(arr, n);
+    SegTree<long long> st;
+    st.build(arr, n);
 
     while(q--)
     {
         int op;cin>>op;
         if(op == 1)
         {
-            int idx, val;cin>>idx>>val, idx--;
-            update(1, 0, n-1, idx, val);
+            long long idx, val;cin>>idx>>val, idx--;
+            st.update(1, 0, n-1, idx, idx, val);
         } else {
             int l, r;cin>>l>>r, l--, r--;
-            cout<<qry(1, 0, n-1, l, r)<<endl;
+            cout<<st.qry(1, 0, n-1, l, r)<<endl;
         }
     }
 }

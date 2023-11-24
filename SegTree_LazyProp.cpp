@@ -181,77 +181,83 @@ unsigned long long fast_comb(unsigned long long n, int r)
     return mult(fact[n], mult(invfact[n-r], invfact[r]));
 }
 
-struct d{
-    long long sum, lz=0;
+template <typename T> class SegTree
+{
+    public:
+    vector<T> tree;
+    vector<T> lazy;
+    T merge(T &a, T &b)
+    {
+        return a + b;
+    }
+    void build(vector<T> &arr, long long &n)
+    {
+        while(__builtin_popcount(n) != 1) n++;
+        tree.resize(2 * n);
+        lazy.resize(2 * n);
+        for(int i = 0; i<arr.size(); i++){
+            tree[n + i] = arr[i];
+        }
+        for(int i = n-1; i>=1; i--){
+            tree[i] = merge(tree[2 * i], tree[2 * i + 1]);
+        }
+    }
+    void apl(int node, int tl, int tr, T val) {
+        tree[node] += (tr - tl + 1) * val;
+        lazy[node] += val;
+    }
+    void push(int node, int tl, int mid, int tr)
+    {
+        apl(2 * node, tl, mid, lazy[node]);
+        apl(2 * node + 1, mid + 1, tr, lazy[node]);
+
+        lazy[node] = 0;
+    }
+    void update(int node, int tl, int tr, int l, int r, T v)
+    {
+        if(tr < l || r < tl) return;
+        if(l <= tl && tr <= r) {
+            apl(node, tl, tr, v);
+            return;
+        }
+
+        int mid = (tl + tr) / 2;
+        push(node, tl, mid, tr);
+        update(2 * node, tl, mid, l, r, v);
+        update(2 * node + 1, mid + 1, tr, l, r, v);
+        tree[node] = merge(tree[2*node], tree[2*node+1]);
+    }
+    T qry(int node, int tl, int tr, int l, int r)
+    {
+        if(tr < l || r < tl) return 0; //here 0 is identity element
+        if(l <= tl && tr <= r) return tree[node];
+
+        int mid = (tl + tr) / 2;
+        push(node, tl, mid, tr);
+        T left = qry(2 * node, tl, mid, l, r);
+        T right = qry(2 * node + 1, mid + 1, tr, l, r);
+        return merge(left, right);
+    }
 };
-vector<d> tree;
-void build(vector<int> &arr, int &n)
-{
-    while(__builtin_popcount(n) != 1) n++;
-    tree.resize(2 * n);
-    for(int i = 0; i<arr.size(); i++){
-        tree[n + i].sum = arr[i];
-    }
-    for(int i = n-1; i>=1; i--){
-        tree[i].sum = tree[2 * i].sum + tree[2 * i + 1].sum;
-    }
-}
-void appl(int node, int tl, int tr, long long val)
-{
-    tree[node].sum += (tr - tl + 1) * val;
-    tree[node].lz += val;
-}
-void push(int node, int tl, int tmid, int tr)
-{
-    appl(2 * node, tl, tmid, tree[node].lz);
-    appl(2 * node + 1, tmid + 1, tr, tree[node].lz);
-
-    tree[node].lz = 0;
-}
-//default values: node->1, tl->0, tr->n-1
-//increament range [l, r] by val
-void update(int node, int tl, int tr, int l, int r, int val)
-{
-    if(l > tr || tl > r) return;
-    if(l <= tl && tr <= r){
-        appl(node, tl, tr, val);
-        return;
-    }
-
-    int mid = (tl + tr) / 2;
-    push(node, tl, mid, tr);
-    update(2* node, tl, mid, l, r, val);
-    update(2 * node + 1, mid + 1, tr, l, r, val);
-    tree[node].sum = tree[2 * node].sum + tree[2 * node + 1].sum;
-}
-//qry for sum in range [l,r]
-long long qry(int node, int tl, int tr, int l, int r)
-{
-    if(l > tr || tl > r) return 0; //here 0 is identity element
-    if(l <= tl && tr <= r) return tree[node].sum;
-
-    int mid = (tl + tr) / 2;
-    push(node, tl, mid, tr);
-    return qry(2 * node, tl, mid, l, r) + qry(2 * node + 1, mid + 1, tr, l, r);
-}
 
 void solution()
 {
-    int n, q;
+    long long n, q;
     cin>>n>>q;
     vector<int> arr(n);
     for(int i = 0; i<n; i++) cin>>arr[i];
-    build(arr, n);
+    SegTree<int> st;
+    st.build(arr, n);
     for(int i = 0; i<q; i++)
     {
         int op;cin>>op;
         if(op == 1)
         {
             int l, r, val;cin>>l>>r>>val, l--, r--;
-            update(1, 0, n-1, l, r, val);
+            st.update(1, 0, n-1, l, r, val);
         } else {
             int l, r; cin>>l>>r, l--,r--;
-            cout<<qry(1, 0, n-1, l, r)<<endl;
+            cout<<st.qry(1, 0, n-1, l, r)<<endl;
         }
     }
 }
